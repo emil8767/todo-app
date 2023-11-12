@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\NoteRequest;
+use App\Mail\NoteMail;
 use App\Models\Note;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use App\Events\NoteCreated;
+use Illuminate\Support\Facades\Mail;
 
 class NoteController extends Controller
 {
@@ -16,7 +20,14 @@ class NoteController extends Controller
      */
     public function index()
     {
-        return Note::all();
+        $user = Auth::user();
+        if(isset($user->role) && $user->role->name === 'admin') {
+            $notes = Note::all();
+            return response()->json(['notes' => $notes], 201);
+        } else {
+            $notes = $user->notes;
+            return response()->json(['notes' => $notes], 201);
+        }
     }
 
     /**
@@ -38,6 +49,7 @@ class NoteController extends Controller
         $note->fill($data);
         $note->user_id = $user->id;
         $note->save();
+        event(new NoteCreated($user->email, $note->name));
         return response()->json(['message' => 'Note created successfully', 'note' => $note], 201);
     }
 
@@ -46,7 +58,8 @@ class NoteController extends Controller
      */
     public function show(string $id)
     {
-        return Note::findOrFail($id);
+        $note = Auth::user()->notes()->whereId($id)->first();
+        return response()->json($note);
     }
 
     /**
@@ -54,20 +67,24 @@ class NoteController extends Controller
      */
     public function update(Request $request, $id)
     {
-       try {
-            $data = $this->validate($request, [
-                'name' => 'required',
-                'content' => 'nullable',
-                'done' => 'required'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Error updating note', 'error' => $e->getMessage()], 500);
-        }
-        //$user = Auth::user();
         $note = Note::findOrFail($id);
-        //$note->user_id = $user->id;
-        $note->update($data);
-        return response()->json(['message' => 'Note updated successfully', 'note' => $note], 201);
+        $user = Auth::user();
+        if(isset($user->role) && $user->role->name === 'admin' || Auth::user()->id === $note->user_id) {
+            try {
+                $data = $this->validate($request, [
+                    'name' => 'required',
+                    'content' => 'nullable',
+                    'done' => 'required'
+                ]);
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Error updating note', 'error' => $e->getMessage()], 500);
+            }
+            //$note = Note::findOrFail($id);
+            $note->update($data);
+            return response()->json(['message' => 'Note updated successfully', 'note' => $note], 201);
+        } else {
+            return response()->json(['message' => 'The note does not exist or you do not have access',], 403);
+        }
     }
 
     /**
@@ -76,7 +93,12 @@ class NoteController extends Controller
     public function destroy($id)
     {
         $note = Note::findOrFail($id);
-        $note->delete();
-        return response()->json(['message' => 'Note deleted successfully'], 201);
+        $user = Auth::user();
+        if(isset($user->role) && Auth::user()->role->name === 'admin' || Auth::user()->id === $note->user_id) {
+            $note->delete();
+            return response()->json(['message' => 'Note deleted successfully'], 201);
+        } else {
+            return response()->json(['message' => 'The note does not exist or you do not have access',], 403);
+        }
     }
 }
