@@ -1,0 +1,182 @@
+openapi: 3.0.3
+
+  info:
+    title: OpenAPI спецификация каталога заметов
+    description: Описание методов получения, создания, обновления и удаления заметок
+    version: 1.0.0
+  servers:
+    - url: http://localhost:8080/api/v1
+      description: Dev server
+
+
+  tags:
+    - name: Note
+      description: "All methods about Notes"
+
+
+
+  paths:
+    /notes:
+      get:
+        summary: Метод получения заметок
+        description: Метод предназначен для получения списка всех заметок, сохраненных в БД.
+        operationId: getNotes
+        tags:
+          - Note
+        responses:
+          '200':
+            description: Список заметок
+            content:
+              application/json;charset=UTF-8:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Note"
+      post:
+        summary: Метод добавления новой заметки
+        description: Метод предназначен для сохранения в БД данных.
+        operationId: createNote
+        tags:
+          - Note
+        requestBody:
+          required: true
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/Note"
+        responses:
+          '200':
+            description: Подтверждение успешного сохранения
+            content:
+              application/json;charset=UTF-8:
+                schema:
+                  $ref: "#/components/schemas/Note"
+          '400':
+            description: Некорректные входные данные. Возвращает список атрибутов с ошибками
+            content:
+              application/json;charset=UTF-8:
+                schema:
+                  type: array
+                  items:
+                    type: string
+    /notes/{id}:
+      get:
+        summary: Метод получения заметки по идентификатору
+        description: Метод предназначен для получения из БД данных по заметке.
+        operationId: getNoteById
+        tags:
+          - Note
+        parameters:
+          - name: id
+            in: path
+            required: true
+            description: Идентификатор заметки
+            example: 42abcd2b-8b9c-4af9-88f7-0bc180cf74b4
+            schema:
+              type: string
+              format: uuid
+        responses:
+          '200':
+            description: Заметка
+            content:
+              application/json;charset=UTF-8:
+                schema:
+                  $ref: "#/components/schemas/Note"
+      put:
+        summary: Метод обновления заметки
+        description: Метод предназначен для обновления в БД данных по имеющейся заметке.
+        operationId: updateNote
+        tags:
+          - Note
+        parameters:
+          - name: id
+            in: path
+            required: true
+            description: Идентификатор заметки
+            example: 42abcd2b-8b9c-4af9-88f7-0bc180cf74b4
+            schema:
+              type: string
+              format: uuid
+        requestBody:
+          required: true
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                $ref: "#/components/schemas/Note"
+        responses:
+          '200':
+            description: Подтверждение успешного обновления
+            content:
+              application/json;charset=UTF-8:
+                schema:
+                  $ref: "#/components/schemas/Note"
+          '400':
+            description: Некорректные входные данные. Возвращает список атрибутов с ошибками
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    type: string
+          '5XX':
+            description: Любая неожиданная ошибка сервера
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
+      delete:
+        summary: Метод удаления заметки по идентификатору
+        description: Метод предназначен для удаления в БД данных по заметке.
+        operationId: deleteNoteById
+        tags:
+          - Note
+        parameters:
+          - name: id
+            in: path
+            required: true
+            description: Идентификатор Заметки
+            example: 42abcd2b-8b9c-4af9-88f7-0bc180cf74b4
+            schema:
+              type: string
+              format: uuid
+        responses:
+          '200':
+            description: Успешное удаление
+            content: {}
+  components:
+    schemas:
+      Note:
+        type: object
+        required:
+          - name
+          - done
+        properties:
+          name:
+            description: Название игрушки
+            type: string
+            example: Утро
+          done:
+            description: Статус заметки
+            type: boolean
+            enum:
+              - true
+              - false
+            example: false
+          content:
+            description: Описание
+            type: string
+            example: Побегать утром
+          created_at:
+            description: Дата и время сохранения игрушки в каталоге
+            type: string
+            example: 2022-07-01T15:00:00+01
+      Error:
+        type: object
+        required:
+          - code
+          - message
+        properties:
+          code:
+            type: integer
+          message:
+            type: string
