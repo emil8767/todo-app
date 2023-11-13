@@ -7,3 +7,5 @@ up:
 	echo "Service is ready"
 lint:
 	composer exec --verbose phpcs -- --standard=PSR12 app routes tests --ignore=app/Models
+stan:
+	vendor/bin/phpstan analyse app
