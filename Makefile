@@ -5,3 +5,5 @@ up:
 	docker-compose exec php php artisan key:generate --ansi
 	docker-compose exec php php artisan migrate
 	echo "Service is ready"
+lint:
+	composer exec --verbose phpcs -- --standard=PSR12 app routes tests --ignore=app/Models
