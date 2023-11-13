@@ -1,19 +1,19 @@
-Start off:
-- composer install
+## About the project
 
-  Make a copy of the .env.example file and rename it to .env. Configure the database connection and other settings.
+This project is built using Laravel and is a task management web application.
 
-- php artisan migrate
-- php artisan serve
+## Installation
 
-Open your web browser and check the address http://127.0.0.1:8000.
+1. Clone the repository to your computer.
+2. Install all dependencies by running the `composer install` command.
+3. Create a .env file, copy the contents of the .env.example file into it and configure the database connection.
+4. Perform the migrations by running the `php artisan migrate` command.
 
-Rejoice! Your Laravel TODO List project has successfully started.
+## Installation through docker
+1. Running the `make up` command.
 
-API documentation is available using Swagger. After running the project, go to http://127.0.0.1:8000/api/documentation to view and test the API methods.
+## Usage
 
-Notes:
-If you have problems installing or running your project, please refer to the official Laravel documentation or the Laravel community.
-Before you migrate, make sure your server database is running and configured correctly.
-Before you use Passport for your first project, make sure your server supports encryption and has an SSL certificate installed.
-Happy coding!
+1. Run the application by running the `php artisan serve` command.
+2. Open the application in a browser by going to http://localhost:8000.
+3. Register or log in to start working with tasks.
