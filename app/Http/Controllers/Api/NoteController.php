@@ -36,17 +36,13 @@ class NoteController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        try {
-            $data = $this->validate($request, [
-                'name' => 'required',
-                'content' => 'nullable',
-                'done' => 'required'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Error creating note', 'error' => $e->getMessage()], 500);
-        }
+        $validator = $this::validate($request, [
+            'name' => 'required|max:255',
+            'content' => 'nullable',
+            'done' => 'required|boolean'
+        ]);
         $note = new Note();
-        $note->fill($data);
+        $note->fill($validator);
         $note->user_id = $user->id;
         $note->save();
         event(new NoteCreated($user->email, $note->name));
@@ -70,17 +66,12 @@ class NoteController extends Controller
         $note = Note::findOrFail($id);
         $user = Auth::user();
         if(isset($user->role) && $user->role->name === 'admin' || Auth::user()->id === $note->user_id) {
-            try {
-                $data = $this->validate($request, [
-                    'name' => 'required',
-                    'content' => 'nullable',
-                    'done' => 'required'
-                ]);
-            } catch (\Exception $e) {
-                return response()->json(['message' => 'Error updating note', 'error' => $e->getMessage()], 500);
-            }
-            //$note = Note::findOrFail($id);
-            $note->update($data);
+            $validator = $this::validate($request, [
+                'name' => 'required|max:255',
+                'content' => 'nullable',
+                'done' => 'required|boolean'
+            ]);
+            $note->update($validator);
             return response()->json(['message' => 'Note updated successfully', 'note' => $note], 201);
         } else {
             return response()->json(['message' => 'The note does not exist or you do not have access',], 403);
